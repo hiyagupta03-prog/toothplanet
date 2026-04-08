@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | Tooth Planet</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#0a1628;color:#f8faff;min-height:100vh}
+:root{--cyan:#00d4ff;--mint:#00f5c8;--gold:#f0c040;--red:#ff4d6d;--green:#00e5a0;--glass:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.12)}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,rgba(37,117,216,.2),transparent 60%)}
+.login-box{background:var(--glass);border:1px solid var(--border);border-radius:24px;padding:44px;width:360px;text-align:center;backdrop-filter:blur(20px)}
+.login-box h2{font-size:24px;margin-bottom:6px}
+.login-box p{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:28px}
+.login-box input{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:#fff;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:14px}
+.login-box input:focus{outline:none;border-color:var(--cyan)}
+.login-btn{width:100%;padding:13px;background:linear-gradient(135deg,#2575d8,var(--cyan));color:#0a1628;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif}
+.login-err{font-size:12px;color:#ff4d6d;margin-top:10px;display:none}
+
+/* ADMIN UI */
+#adminUI{display:none}
+nav{background:rgba(7,16,30,.96);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--mint));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logout-btn{background:rgba(255,77,109,.12);border:1px solid rgba(255,77,109,.3);color:#ff4d6d;padding:7px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif}
+
+.dashboard{padding:36px 40px;max-width:1200px;margin:0 auto}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px}
+.stat-box{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:22px;text-align:center}
+.stat-num2{font-size:36px;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--mint));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label2{font-size:12px;color:rgba(255,255,255,.45);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+
+.filters{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;font-size:13px;transition:all .2s;font-family:'DM Sans',sans-serif}
+.filter-btn.active{background:rgba(0,212,255,.12);border-color:var(--cyan);color:var(--cyan)}
+.search-input{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:8px 14px;color:#fff;font-size:13px;font-family:'DM Sans',sans-serif;margin-left:auto;min-width:220px}
+.search-input:focus{outline:none;border-color:var(--cyan)}
+
+.table-wrap{background:var(--glass);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead{background:rgba(0,212,255,.07)}
+th{padding:14px 18px;text-align:left;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:600}
+td{padding:14px 18px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.03)}
+.status-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px}
+.status-pending{background:rgba(240,192,64,.12);color:#f0c040;border:1px solid rgba(240,192,64,.25)}
+.status-confirmed{background:rgba(0,229,160,.1);color:#00e5a0;border:1px solid rgba(0,229,160,.25)}
+.status-cancelled{background:rgba(255,77,109,.1);color:#ff4d6d;border:1px solid rgba(255,77,109,.25)}
+.action-btn{padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;margin-right:4px;transition:opacity .2s}
+.action-btn:hover{opacity:.8}
+.btn-confirm{background:rgba(0,229,160,.15);color:#00e5a0}
+.btn-cancel{background:rgba(255,77,109,.12);color:#ff4d6d}
+.btn-delete{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)}
+.loading-row td{text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:14px}
+.empty-row td{text-align:center;padding:60px;color:rgba(255,255,255,.3)}
+.refresh-btn{margin-left:8px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:7px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif}
+@media(max-width:768px){.stats-row{grid-template-columns:1fr 1fr}.dashboard{padding:24px 20px}th,td{padding:10px 12px}table{font-size:12px}.filters{flex-direction:column;align-items:stretch}.search-input{margin-left:0;width:100%}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div style="font-size:44px;margin-bottom:14px">🦷</div>
+    <h2>Admin Dashboard</h2>
+    <p>Tooth Planet Dental Care Clinic</p>
+    <input type="password" id="adminKey" placeholder="Enter admin key" onkeydown="if(event.key==='Enter')login()">
+    <button class="login-btn" onclick="login()">Login →</button>
+    <div class="login-err" id="loginErr">Invalid admin key. Please try again.</div>
+  </div>
+</div>
+
+<!-- ADMIN UI -->
+<div id="adminUI">
+  <nav>
+    <div class="nav-logo">
+      <div class="logo-icon">🦷</div>
+      Tooth Planet — Admin
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="refresh-btn" onclick="loadAppointments()">↻ Refresh</button>
+      <a href="/" style="color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;margin-right:8px">← Back to Site</a>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="dashboard">
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num2" id="statTotal">—</div><div class="stat-label2">Total Booked</div></div>
+      <div class="stat-box"><div class="stat-num2" id="statPending" style="background:linear-gradient(135deg,#f0c040,#fde68a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">—</div><div class="stat-label2">Pending</div></div>
+      <div class="stat-box"><div class="stat-num2" id="statConfirmed" style="background:linear-gradient(135deg,var(--green),var(--mint));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">—</div><div class="stat-label2">Confirmed</div></div>
+      <div class="stat-box"><div class="stat-num2" id="statCancelled" style="background:linear-gradient(135deg,#ff4d6d,#ff8fa3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">—</div><div class="stat-label2">Cancelled</div></div>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
+      <button class="filter-btn" onclick="setFilter('confirmed',this)">Confirmed</button>
+      <button class="filter-btn" onclick="setFilter('cancelled',this)">Cancelled</button>
+      <input class="search-input" id="searchInput" placeholder="🔍 Search by name, phone, service..." oninput="renderTable()">
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Patient</th><th>Phone</th><th>Service</th><th>Date & Time</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="apptTable">
+          <tr class="loading-row"><td colspan="7">Loading appointments...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let adminKey = '';
+let allAppts = [];
+let currentFilter = 'all';
+
+function login() {
+  const key = document.getElementById('adminKey').value;
+  if (!key) return;
+  adminKey = key;
+  loadAppointments();
+}
+
+async function loadAppointments() {
+  try {
+    const res = await fetch('/api/appointments', { headers: { 'x-admin-key': adminKey } });
+    if (res.status === 401) {
+      document.getElementById('loginErr').style.display = 'block';
+      adminKey = '';
+      return;
+    }
+    const data = await res.json();
+    allAppts = data.appointments || [];
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('adminUI').style.display = 'block';
+    updateStats();
+    renderTable();
+  } catch {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginErr').textContent = 'Server error. Is the backend running?';
+  }
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = allAppts.length;
+  document.getElementById('statPending').textContent = allAppts.filter(a=>a.status==='pending').length;
+  document.getElementById('statConfirmed').textContent = allAppts.filter(a=>a.status==='confirmed').length;
+  document.getElementById('statCancelled').textContent = allAppts.filter(a=>a.status==='cancelled').length;
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let list = allAppts.filter(a => {
+    const matchFilter = currentFilter === 'all' || a.status === currentFilter;
+    const matchSearch = !q || 
+      (a.firstName+' '+a.lastName).toLowerCase().includes(q) ||
+      a.phone.includes(q) ||
+      a.service.toLowerCase().includes(q);
+    return matchFilter && matchSearch;
+  });
+
+  const tbody = document.getElementById('apptTable');
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No appointments found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((a,i) => `
+    <tr>
+      <td style="color:rgba(255,255,255,.35)">${i+1}</td>
+      <td><strong>${a.firstName} ${a.lastName}</strong>${a.email?`<br><span style="color:rgba(255,255,255,.35);font-size:11px">${a.email}</span>`:''}</td>
+      <td>${a.phone}</td>
+      <td>${a.service}</td>
+      <td>${formatDate(a.date)}<br><span style="color:rgba(255,255,255,.45);font-size:12px">${a.time}</span></td>
+      <td><span class="status-badge status-${a.status}">${a.status.toUpperCase()}</span></td>
+      <td>
+        ${a.status!=='confirmed'?`<button class="action-btn btn-confirm" onclick="updateStatus('${a.id}','confirmed')">✓ Confirm</button>`:''}
+        ${a.status!=='cancelled'?`<button class="action-btn btn-cancel" onclick="updateStatus('${a.id}','cancelled')">✕ Cancel</button>`:''}
+        <button class="action-btn btn-delete" onclick="deleteAppt('${a.id}')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function formatDate(d) {
+  if(!d) return '—';
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+
+async function updateStatus(id, status) {
+  await fetch(`/api/appointments/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+    body: JSON.stringify({ status }),
+  });
+  const appt = allAppts.find(a=>a.id===id);
+  if(appt) appt.status = status;
+  updateStats(); renderTable();
+}
+
+async function deleteAppt(id) {
+  if (!confirm('Delete this appointment permanently?')) return;
+  await fetch(`/api/appointments/${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-key': adminKey },
+  });
+  allAppts = allAppts.filter(a=>a.id!==id);
+  updateStats(); renderTable();
+}
+
+function logout() {
+  adminKey = ''; allAppts = [];
+  document.getElementById('adminUI').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('adminKey').value = '';
+}
+</script>
+</body>
+</html>
